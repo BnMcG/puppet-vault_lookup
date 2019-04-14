@@ -2,9 +2,10 @@ Puppet::Functions.create_function(:'vault_lookup::lookup') do
   dispatch :lookup do
     param 'String', :path
     optional_param 'String', :vault_url
+    optional_param 'Bool', :verify_ssl
   end
 
-  def lookup(path, vault_url = nil)
+  def lookup(path, vault_url = nil, verify_ssl = true)
     if vault_url.nil?
       Puppet.debug 'No Vault address was set on function, defaulting to value from VAULT_ADDR env value'
       vault_url = ENV['VAULT_ADDR']
@@ -19,7 +20,7 @@ Puppet::Functions.create_function(:'vault_lookup::lookup') do
     raise Puppet::Error, "Unable to parse a hostname from #{vault_url}" unless uri.hostname
 
     use_ssl = uri.scheme == 'https'
-    connection = Puppet::Network::HttpPool.http_instance(uri.host, uri.port, use_ssl)
+    connection = Puppet::Network::HttpPool.http_instance(uri.host, uri.port, use_ssl, verify_ssl)
 
     token = get_auth_token(connection)
 
