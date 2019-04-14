@@ -22,6 +22,7 @@ Puppet::Functions.create_function(:'vault_lookup::lookup') do
     use_ssl = uri.scheme == 'https'
     ssl_provider = Puppet::SSL::SSLProvider.new
     ssl_context = ssl_provider.load_context()
+    ssl_context.verify_peer = verify_ssl
     connection = Puppet::Network::HttpPool.connection(uri.host, uri.port, use_ssl: use_ssl, ssl_context: ssl_context)
     # connection = Puppet::Network::HttpPool.http_instance(uri.host, uri.port, use_ssl, verify_ssl)
 
