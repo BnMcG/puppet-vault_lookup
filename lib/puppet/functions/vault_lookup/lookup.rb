@@ -2,7 +2,7 @@ Puppet::Functions.create_function(:'vault_lookup::lookup') do
   dispatch :lookup do
     param 'String', :path
     optional_param 'String', :vault_url
-    optional_param 'Bool', :verify_ssl
+    optional_param 'Boolean', :verify_ssl
   end
 
   def lookup(path, vault_url = nil, verify_ssl = true)
