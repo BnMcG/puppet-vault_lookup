@@ -20,22 +20,9 @@ Puppet::Functions.create_function(:'vault_lookup::lookup') do
     raise Puppet::Error, "Unable to parse a hostname from #{vault_url}" unless uri.hostname
 
     use_ssl = uri.scheme == 'https'
-    ssl_provider = Puppet::SSL::SSLProvider.new
-    default_ssl_context = ssl_provider.load_context()
-    
-    ssl_context = Puppet::SSL::SSLContext.new(
-      store: default_ssl_context.store,
-      cacerts: default_ssl_context.cacerts,
-      crls: default_ssl_context.crls,
-      private_key: default_ssl_context.private_key,
-      client_cert: default_ssl_context.client_cert,
-      client_chain: default_ssl_context.client_chain,
-      revocation: default_ssl_context.revocation,
-      verify_peer: verify_ssl
-    )
+    ssl_context = create_ssl_context(verify_ssl)
     
     connection = Puppet::Network::HttpPool.connection(uri.host, uri.port, use_ssl: use_ssl, ssl_context: ssl_context)
-    # connection = Puppet::Network::HttpPool.http_instance(uri.host, uri.port, use_ssl, verify_ssl)
 
     token = get_auth_token(connection)
 
@@ -55,6 +42,24 @@ Puppet::Functions.create_function(:'vault_lookup::lookup') do
   end
 
   private
+
+  def create_ssl_context(verify_ssl)
+    ssl_provider = Puppet::SSL::SSLProvider.new
+    default_ssl_context = ssl_provider.load_context()
+    
+    ssl_context = Puppet::SSL::SSLContext.new(
+      store: default_ssl_context.store,
+      cacerts: default_ssl_context.cacerts,
+      crls: default_ssl_context.crls,
+      private_key: default_ssl_context.private_key,
+      client_cert: default_ssl_context.client_cert,
+      client_chain: default_ssl_context.client_chain,
+      revocation: default_ssl_context.revocation,
+      verify_peer: verify_ssl
+    )
+
+    ssl_context
+  end
 
   def get_auth_token(connection)
     response = connection.post('/v1/auth/cert/login', '')
